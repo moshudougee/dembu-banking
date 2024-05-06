@@ -43,7 +43,9 @@ export const signIn = async ({ email, password }: signInProps) => {
             sameSite: "strict",
             secure: true,
           });
-        return parseStringify(session);
+        const user = await getUserInfo({ userId: session.userId }) 
+
+        return parseStringify(user);
     } catch (error) {
         console.error('Error', error)
     }
@@ -92,7 +94,6 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
             sameSite: "strict",
             secure: true,
         });
-       console.log(newUser); 
     return parseStringify(newUser);
       
     } catch (error) {
@@ -108,7 +109,6 @@ export async function getLoggedInUser() {
       const result = await account.get();
   
       const user = await getUserInfo({ userId: result.$id})
-      console.log(user);
       return parseStringify(user);
     } catch (error) {
       console.log(error)
@@ -239,4 +239,52 @@ export const exchangePublicToken = async ({
     }
   }
 
+  export const getBanks = async ({ userId }: getBanksProps) => {
+    try {
+      const { database } = await createAdminClient();
+  
+      const banks = await database.listDocuments(
+        DATABASE_ID!,
+        BANK_COLLECTION_ID!,
+        [Query.equal('userId', [userId])]
+      )
+  
+      return parseStringify(banks.documents);
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  
+  export const getBank = async ({ documentId }: getBankProps) => {
+    try {
+      const { database } = await createAdminClient();
+  
+      const bank = await database.listDocuments(
+        DATABASE_ID!,
+        BANK_COLLECTION_ID!,
+        [Query.equal('$id', [documentId])]
+      )
+  
+      return parseStringify(bank.documents[0]);
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
+  export const getBankByAccountId = async ({ accountId }: getBankByAccountIdProps) => {
+    try {
+      const { database } = await createAdminClient();
+  
+      const bank = await database.listDocuments(
+        DATABASE_ID!,
+        BANK_COLLECTION_ID!,
+        [Query.equal('accountId', [accountId])]
+      )
+  
+      if(bank.total !== 1) return null;
+  
+      return parseStringify(bank.documents[0]);
+    } catch (error) {
+      console.log(error)
+    }
+  }
